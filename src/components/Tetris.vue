@@ -24,12 +24,23 @@ onBeforeUnmount(() => {
   stopGame()
   window.removeEventListener("keydown", handleKey)
 })
+
+// Mapowanie ID → kolor
+const pieceColors = {
+  1: "#06b6d4", // I – cyan
+  2: "#facc15", // O – yellow
+  3: "#a855f7", // T – purple
+  4: "#22c55e", // S – green
+  5: "#ef4444", // Z – red
+  6: "#3b82f6", // J – blue
+  7: "#f97316", // L – orange
+}
 </script>
 
 <template>
   <div class="tetris-wrapper">
     <div class="header">
-      <h1>Vue 3 Tetris</h1>
+      <h1>Tetris</h1>
       <div v-if="isRunning && !isGameOver" class="score">Wynik: {{ score }}</div>
     </div>
 
@@ -38,7 +49,8 @@ onBeforeUnmount(() => {
       <div
         v-for="(cell, index) in drawBoard().flat()"
         :key="index"
-        :class="['cell', cell ? 'filled' : 'empty']"
+        class="cell"
+        :style="{ backgroundColor: cell ? pieceColors[cell] : '#111' }"
       ></div>
     </div>
 
@@ -128,14 +140,6 @@ html, body, #app {
   height: 100%;
   border: 1px solid #333;
   box-sizing: border-box;
-}
-
-.cell.empty {
-  background-color: #111;
-}
-
-.cell.filled {
-  background-color: #3b82f6;
 }
 
 .gameover {

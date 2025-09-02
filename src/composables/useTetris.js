@@ -49,7 +49,7 @@ export function useTetris(rows = 20, cols = 10) {
     currentPiece.value.shape.forEach((row, dy) => {
       row.forEach((cell, dx) => {
         if (cell) {
-          board.value[currentPiece.value.y + dy][currentPiece.value.x + dx] = 1
+          board.value[currentPiece.value.y + dy][currentPiece.value.x + dx] = cell
         }
       })
     })
