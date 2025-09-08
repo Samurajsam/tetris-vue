@@ -133,6 +133,18 @@ export function useTetris(rows = 20, cols = 10) {
     }
   }
 
+  function pauseGame() {
+    if (gameInterval) {
+      clearInterval(gameInterval)
+      gameInterval = null
+    }
+  }
+  function resumeGame() {
+    if (!gameInterval) {
+      gameInterval = setInterval(tick, 500)
+    }
+  }
+
   return {
     board,
     cols,
@@ -141,6 +153,8 @@ export function useTetris(rows = 20, cols = 10) {
     handleKey,
     startGame,
     stopGame,
+    pauseGame,
+    resumeGame,
     isGameOver
   }
 }
