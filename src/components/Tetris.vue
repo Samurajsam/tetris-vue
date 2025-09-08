@@ -1,10 +1,18 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue"
 import { useTetris } from "../composables/useTetris"
+import './Tetris.css'
+import LeftArrow from "../icons/LeftArrow.vue"
+import RightArrow from "../icons/RightArrow.vue"
+import RestartIcon from "../icons/RestartIcon.vue"
+import PauseIcon from "../icons/PauseIcon.vue"
+import PlayIcon from "../icons/PlayIcon.vue"
 
-const { drawBoard, handleKey, startGame, stopGame, score, isGameOver } = useTetris()
+const { drawBoard, handleKey, startGame, stopGame, pauseGame, resumeGame, score, isGameOver } = useTetris()
 
 const isRunning = ref(false)
+const isPaused = ref(false)
+const showRotateOverlay = ref(false)
 
 function handleStart() {
   isRunning.value = true
@@ -16,24 +24,39 @@ function handleRestart() {
   startGame()
 }
 
+function handlePause() {
+  if (!isPaused.value) {
+    pauseGame()
+  } else {
+    resumeGame()
+  }
+  isPaused.value = !isPaused.value
+}
+
 onMounted(() => {
   window.addEventListener("keydown", handleKey)
+  checkOrientation()
+  window.addEventListener("orientationchange", checkOrientation)
+  window.addEventListener("resize", checkOrientation)
 })
 
 onBeforeUnmount(() => {
   stopGame()
   window.removeEventListener("keydown", handleKey)
+  window.removeEventListener("orientationchange", checkOrientation)
+  window.removeEventListener("resize", checkOrientation)
 })
 
-// Mapowanie ID → kolor
-const pieceColors = {
-  1: "#06b6d4", // I – cyan
-  2: "#facc15", // O – yellow
-  3: "#a855f7", // T – purple
-  4: "#22c55e", // S – green
-  5: "#ef4444", // Z – red
-  6: "#3b82f6", // J – blue
-  7: "#f97316", // L – orange
+function handleMove(action) {
+  if (action === "left") handleKey({ key: "ArrowLeft" })
+  if (action === "right") handleKey({ key: "ArrowRight" })
+  if (action === "down") handleKey({ key: "ArrowDown" }) // B = przyspieszenie
+  if (action === "rotate") handleKey({ key: "ArrowUp" }) // A = obrót
+}
+
+function checkOrientation() {
+  // jeżeli ekran jest „pionowy” – pokaż overlay, żeby obrócić
+  showRotateOverlay.value = window.innerHeight > window.innerWidth
 }
 </script>
 
@@ -41,137 +64,77 @@ const pieceColors = {
   <div class="tetris-wrapper">
     <div class="header">
       <h1>Tetris</h1>
-      <div v-if="isRunning && !isGameOver" class="score">Wynik: {{ score }}</div>
+      <div v-if="isRunning && !isGameOver" class="score">Score: {{ score }}</div>
     </div>
 
-    <!-- Plansza -->
-    <div class="board" v-if="isRunning && !isGameOver">
-      <div
-        v-for="(cell, index) in drawBoard().flat()"
-        :key="index"
-        class="cell"
-        :style="{ backgroundColor: cell ? pieceColors[cell] : '#111' }"
-      ></div>
+    <div class="game-area">
+      <!-- LEWO: D-Pad -->
+      <div v-if="isRunning && !isGameOver" class="dpad">
+        <button class="control-btn left" @click="handleMove('left')" aria-label="Move left">
+          <LeftArrow />
+        </button>
+
+        <button class="control-btn right" @click="handleMove('right')" aria-label="Move right">
+          <RightArrow />
+        </button>
+      </div>
+
+      <!-- ŚRODEK: Plansza -->
+      <div class="board" v-if="isRunning && !isGameOver">
+        <div
+          v-for="(cell, index) in drawBoard().flat()"
+          :key="index"
+          :class="['cell', cell ? 'filled filled-' + cell : 'empty']"
+        ></div>
+      </div>
+
+      <!-- PRAWA STRONA: A (obrót) i B (przyspieszenie) -->
+      <div v-if="isRunning && !isGameOver" class="right-controls">
+      <!-- <div v-if="isRunning && !isGameOver" class="action-panel"> -->
+        <!-- A / B -->
+        <div class="ab-buttons">
+          <button class="control-btn btn-b" @click="handleMove('down')">B</button>
+          <button class="control-btn btn-a" @click="handleMove('rotate')">A</button>
+        </div>
+
+        <!-- Restart / Pauza -->
+        <div class="system-buttons">
+          <button class="control-btn small-btn restart-btn" @click="handleRestart">
+            <RestartIcon />
+          </button>
+          <button class="control-btn small-btn pause-btn" @click="handlePause">
+            <component :is="isPaused ? PlayIcon : PauseIcon" />
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Ekran Game Over -->
     <div v-if="isGameOver" class="gameover">
-      <h2>Koniec gry!</h2>
-      <p>Twój wynik: {{ score }}</p>
+      <h1>GAME OVER!</h1>
+      <h2>Your score: {{ score }} pts</h2>
     </div>
 
+    <!-- Start / Restart -->
     <div class="footer">
-      <button
-        v-if="!isRunning"
-        class="start-btn"
-        @click="handleStart"
-      >
+      <button v-if="!isRunning" class="start-btn" @click="handleStart">
         Start
       </button>
 
-      <button
-        v-else-if="isGameOver"
-        class="restart-btn"
-        @click="handleRestart"
-      >
-        Zagraj ponownie
-      </button>
+      <!-- <div v-else class="game-controls">
+        <button class="restart-btn" @click="handleRestart">
+          <RestartIcon />
+        </button>
 
-      <button
-        v-else
-        class="restart-btn"
-        @click="handleRestart"
-      >
-        Restart
-      </button>
+        <button class="pause-btn" @click="handlePause">
+          <component :is="isPaused ? PlayIcon : PauseIcon" />
+        </button>
+      </div> -->
+    </div>
+
+    <!-- Overlay: wymuszamy pozycję poziomą na mobile -->
+    <div v-if="showRotateOverlay" class="rotate-overlay">
+      <p>Obróć urządzenie poziomo 📱↔️</p>
     </div>
   </div>
 </template>
-
-<style>
-html, body, #app {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
-
-.tetris-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  background-color: #111;
-  color: white;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.header {
-  flex: 0 0 10%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 3vh;
-}
-
-.score {
-  font-size: 2vh;
-}
-
-.board {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(20, 1fr);
-  width: 40vh;
-  height: 80%;
-  max-height: 80%;
-  background-color: #222;
-  gap: 1px;
-}
-
-.cell {
-  width: 100%;
-  height: 100%;
-  border: 1px solid #333;
-  box-sizing: border-box;
-}
-
-.gameover {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-size: 3vh;
-  color: #f87171;
-}
-
-.footer {
-  flex: 0 0 10%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.start-btn,
-.restart-btn {
-  padding: 0.5em 1em;
-  font-size: 2vh;
-  background-color: #16a34a;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.start-btn:hover,
-.restart-btn:hover {
-  background-color: #22c55e;
-}
-</style>

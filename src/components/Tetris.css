@@ -1,0 +1,309 @@
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.tetris-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #111;
+  color: white;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 3vh;
+}
+
+.score {
+  font-size: 2vh;
+}
+
+/* obszar gry: przyciski po bokach, plansza w środku */
+.game-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around; /* przyciski na krańce ekranu */
+  width: 100%;
+  max-width: 1200px; /* lub 100vw na mobile */
+  padding: 0 1rem;   /* trochę marginesu od krawędzi */
+}
+
+/* Plansza */
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  width: 40vh;          /* wysokość bazuje na oknie, proporcje Tetrisa */
+  height: 80%;
+  background-color: #222;
+  gap: 1px;
+}
+
+.cell {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #333;
+  box-sizing: border-box;
+}
+
+.cell.empty {
+  background-color: #111;
+}
+
+/* kolory klocków (ID 1–7) */
+.cell.filled-1 { background-color: #06b6d4; } /* I */
+.cell.filled-2 { background-color: #facc15; } /* O */
+.cell.filled-3 { background-color: #a855f7; } /* T */
+.cell.filled-4 { background-color: #22c55e; } /* S */
+.cell.filled-5 { background-color: #ef4444; } /* Z */
+.cell.filled-6 { background-color: #3b82f6; } /* J */
+.cell.filled-7 { background-color: #f97316; } /* L */
+
+.gameover {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 3vh;
+  color: #f87171;
+}
+
+.footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.start-btn,
+.restart-btn {
+  padding: 0.5em 1em;
+  font-size: 2vh;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.start-btn:hover,
+.restart-btn:hover {
+  background-color: #22c55e;
+}
+.pause-btn {
+  padding: 0.5em 1em;
+  font-size: 2vh;
+  background-color: #f59e0b; /* np. pomarańczowy */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pause-btn:hover {
+  background-color: #d97706;
+}
+
+/* wspólna baza przycisków sterujących */
+.control-btn {
+  width: 80px;       
+  height: 80px;
+  min-width: 80px;
+  min-height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 30% 30%, #333, #111);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 -2px 4px rgba(0,0,0,0.5);
+  transition: transform 0.08s ease, filter 0.18s ease;
+  -webkit-tap-highlight-color: transparent; 
+  outline: none;
+}
+
+/* Błysk + lekkie wciśnięcie */
+.control-btn:active {
+  transform: scale(0.92);
+  transition: transform 0.1s ease;
+  filter: brightness(1.5);
+}
+
+/* przyciski A/B (lewa strona) */
+.ab-buttons {
+  margin-top: 30%;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+.btn-a {
+  background: radial-gradient(circle at 30% 30%, #ef4444, #7f1d1d);
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  align-self: center;
+}
+.btn-b {
+  background: radial-gradient(circle at 30% 30%, #3b82f6, #1e3a8a);
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: center;
+  align-self: center;
+}
+
+/* Restart / Pauza */
+.bottom-buttons { display: flex; flex-direction: row; gap: 0.5rem; margin-top: 1rem; }
+.small-btn { width: 50px; height: 50px; background: radial-gradient(circle at 30% 30%, #555, #222); }
+
+/* strzałki (prawa strona) */
+.dpad {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+.dpad .control-btn {
+  background: radial-gradient(circle at 30% 30%, #555, #222);
+  color: #fff;
+}
+
+/* rozmiar i zachowanie ikon SVG */
+.icon {
+  width: 30px;
+  height: 30px;
+  display: block;
+  pointer-events: none; /* klik na całym przycisku */
+}
+
+
+.control-btn svg {
+  width: 60%;     /* SVG wypełnia 60% przycisku */
+  height: 60%;
+  display: block;
+}
+
+.restart-btn, .pause-btn {
+  width: 50px;
+  height: 20px;
+  border-radius: 8px;
+  background-color: #16a34a; /* np. zielony */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.restart-btn svg, .pause-btn svg {
+  width: 60%;
+  height: 60%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Overlay dla pionu (mobile) */
+.rotate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  z-index: 1000;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* trochę ciaśniej na mniejszych szerokościach */
+@media (max-width: 900px) {
+  .game-area { gap: 1rem; }
+  .control-btn { width: 64px; height: 64px; min-width: 64px; min-height: 10px; }
+  .icon { width: 26px; height: 26px; }
+}
+
+.action-panel {
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* góra - środek - dół */
+  justify-items: center;
+  align-items: center;
+  height: 100%;
+  gap: 2rem; /* odstęp między sekcjami */
+}
+
+/* A i B */
+.ab-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+/* Restart i Pauza */
+.system-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 0.4rem 0.4rem;
+  border-radius: 12px;
+  background: radial-gradient(circle at 30% 30%, #444, #111); /* imitacja zagłębienia plastiku */
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+}
+
+/* Mniejsze szare przyciski */
+.small-btn {
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle at 30% 30%, #666, #222);
+}
+
+.right-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; /* pozwala oddzielić A/B od dolnych przycisków */
+  height: 100%; /* wypełnia wysokość game-area */
+}
+
+/* A/B u góry */
+.ab-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 1rem;
+  margin-bottom: auto;
+}
+
+/* Restart / Pauza na dole */
+.bottom-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  margin-top: auto; /* wymusza dolną pozycję w right-controls */
+}
+
+.small-btn {
+  width: 50px;
+  height: 30px;
+  background: radial-gradient(circle at 30% 30%, #555, #222);
+}
