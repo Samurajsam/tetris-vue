@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 html, body, #app {
   margin: 0;
   padding: 0;
@@ -19,6 +21,50 @@ button {
   align-items: center;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
+}
+
+.music-toggle {
+  position: absolute;
+  top: 2vh;
+  right: 2vh;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #facc15;
+  background: radial-gradient(circle at 30% 30%, #333, #111);
+  color: #facc15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.4);
+  transition: all 0.2s ease;
+  z-index: 200;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.music-toggle:hover {
+  background: radial-gradient(circle at 30% 30%, #444, #222);
+  box-shadow: 0 0 25px rgba(250, 204, 21, 0.6);
+  transform: scale(1.05);
+}
+
+.music-toggle:active {
+  transform: scale(0.95);
+}
+
+.music-toggle svg {
+  width: 60%;
+  height: 60%;
+  display: block;
+}
+
+.tetris-wrapper.start-screen {
+  background: url("../assets/tetris-start-bg.png") no-repeat center center;
+  background-size: cover;
+  display: block;
 }
 
 .header {
@@ -35,7 +81,11 @@ button {
 }
 
 .score {
-  font-size: 2vh;
+  margin-top: 2%;
+  margin-bottom: 2%;
+  font-size:4vh;
+  font-family: monospace;
+  color: #16a34a;
 }
 
 /* obszar gry: przyciski po bokach, plansza w środku */
@@ -54,8 +104,8 @@ button {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(20, 1fr);
-  width: 40vh;          /* wysokość bazuje na oknie, proporcje Tetrisa */
-  height: 80%;
+  width: 50vh;          /* wysokość bazuje na oknie, proporcje Tetrisa */
+  height: 100%;
   background-color: #222;
   gap: 1px;
 }
@@ -81,13 +131,64 @@ button {
 .cell.filled-7 { background-color: #f97316; } /* L */
 
 .gameover {
-  flex: 1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   font-size: 3vh;
   color: #f87171;
+  background-color: #111;
+  z-index: 100;
+}
+
+.gameover h1 {
+  margin: 0 0 2rem 0;
+  font-size: 6vh;
+  font-family: 'Press Start 2P', monospace;
+  color: #ef4444;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+  letter-spacing: 3px;
+}
+
+.gameover h2 {
+  margin: 0 0 3rem 0;
+  font-size: 3.5vh;
+  font-family: 'Press Start 2P', monospace;
+  color: #facc15;
+  text-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
+  letter-spacing: 2px;
+}
+
+.play-again-btn {
+  padding: 1.5rem 2.5rem;
+  font-size: 2.5vh;
+  font-family: 'Press Start 2P', monospace;
+  background-color: transparent;
+  color: #facc15;
+  border: 4px solid #facc15;
+  border-radius: 0;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+  animation: blink 1.5s ease-in-out infinite;
+  transition: all 0.2s ease;
+}
+
+.play-again-btn:hover {
+  background-color: #facc15;
+  color: #111;
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.8);
+  animation: none;
+}
+
+.play-again-btn:active {
+  transform: scale(0.95);
 }
 
 .footer {
@@ -96,9 +197,48 @@ button {
   align-items: center;
   justify-content: center;
   margin: 1rem 0;
+  position: absolute;
+  bottom: 20vh;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.start-btn,
+.start-btn {
+  padding: 1.5rem 2.5rem;
+  font-size: 2.5vh;
+  font-family: 'Press Start 2P', monospace;
+  background-color: transparent;
+  color: #facc15;
+  border: 4px solid #facc15;
+  border-radius: 0;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+  animation: blink 1.5s ease-in-out infinite;
+  transition: all 0.2s ease;
+}
+
+.start-btn:hover {
+  background-color: #facc15;
+  color: #111;
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.8);
+  animation: none;
+}
+
+.start-btn:active {
+  transform: scale(0.95);
+}
+
+@keyframes blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.4;
+  }
+}
+
 .restart-btn {
   padding: 0.5em 1em;
   font-size: 2vh;
@@ -108,7 +248,7 @@ button {
   border-radius: 8px;
   cursor: pointer;
 }
-.start-btn:hover,
+
 .restart-btn:hover {
   background-color: #22c55e;
 }

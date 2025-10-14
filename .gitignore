@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Music
+public/tetris-theme.mp3
+public/README_MUSIC.txt
+
+# Pictures
+src/assets/tetris-start-bg.png
