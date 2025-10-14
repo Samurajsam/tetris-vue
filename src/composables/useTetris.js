@@ -8,6 +8,27 @@ export function useTetris(rows = 20, cols = 10) {
   const currentPiece = ref(null)
   const isGameOver = ref(false)
   let gameInterval = null
+  // Dynamic speed control
+  const baseInterval = 500 // ms
+  const minInterval = 100 // ms (cap)
+  const stepInterval = 50  // ms faster per each +1000 points
+  let currentInterval = baseInterval
+
+  function computeInterval() {
+    const levels = Math.floor(score.value / 1000)
+    return Math.max(minInterval, baseInterval - levels * stepInterval)
+  }
+
+  function applyIntervalIfChanged() {
+    const newInterval = computeInterval()
+    if (newInterval !== currentInterval) {
+      currentInterval = newInterval
+      if (gameInterval) {
+        clearInterval(gameInterval)
+        gameInterval = setInterval(tick, currentInterval)
+      }
+    }
+  }
 
   function spawnPiece() {
     const shape = PIECES[Math.floor(Math.random() * PIECES.length)]
@@ -60,6 +81,8 @@ export function useTetris(rows = 20, cols = 10) {
     const cleared = rows - board.value.length
     if (cleared > 0) {
       score.value += cleared * 100
+      // After score change, possibly speed up
+      applyIntervalIfChanged()
       while (board.value.length < rows) {
         board.value.unshift(Array(cols).fill(0))
       }
@@ -123,7 +146,8 @@ export function useTetris(rows = 20, cols = 10) {
     score.value = 0
     isGameOver.value = false
     spawnPiece()
-    gameInterval = setInterval(tick, 500)
+    currentInterval = baseInterval
+    gameInterval = setInterval(tick, currentInterval)
   }
 
   function stopGame() {
@@ -141,7 +165,9 @@ export function useTetris(rows = 20, cols = 10) {
   }
   function resumeGame() {
     if (!gameInterval) {
-      gameInterval = setInterval(tick, 500)
+      // Use latest computed interval so resume respects speed-ups
+      currentInterval = computeInterval()
+      gameInterval = setInterval(tick, currentInterval)
     }
   }
 

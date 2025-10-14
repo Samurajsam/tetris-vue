@@ -7,12 +7,16 @@ import RightArrow from "../icons/RightArrow.vue"
 import RestartIcon from "../icons/RestartIcon.vue"
 import PauseIcon from "../icons/PauseIcon.vue"
 import PlayIcon from "../icons/PlayIcon.vue"
+import VolumeOnIcon from "../icons/VolumeOnIcon.vue"
+import VolumeOffIcon from "../icons/VolumeOffIcon.vue"
 
 const { drawBoard, handleKey, startGame, stopGame, pauseGame, resumeGame, score, isGameOver } = useTetris()
 
 const isRunning = ref(false)
 const isPaused = ref(false)
 const showRotateOverlay = ref(false)
+const isMusicOn = ref(true)
+const audioElement = ref(null)
 
 function handleStart() {
   isRunning.value = true
@@ -21,28 +25,90 @@ function handleStart() {
 
 function handleRestart() {
   stopGame()
+  stopMusic()
   startGame()
+  playMusic()
+}
+
+function handlePlayAgain() {
+  stopGame()
+  isGameOver.value = false
+  isRunning.value = false
+  isPaused.value = false
 }
 
 function handlePause() {
   if (!isPaused.value) {
     pauseGame()
+    pauseMusic()
   } else {
     resumeGame()
+    playMusic()
   }
   isPaused.value = !isPaused.value
 }
 
+function toggleMusic() {
+  isMusicOn.value = !isMusicOn.value
+  if (isMusicOn.value) {
+    playMusic()
+  } else {
+    pauseMusic()
+  }
+}
+
+function playMusic() {
+  if (audioElement.value && isMusicOn.value && !isPaused.value) {
+    audioElement.value.play().catch(err => console.log('Audio play failed:', err))
+  }
+}
+
+function pauseMusic() {
+  if (audioElement.value) {
+    audioElement.value.pause()
+  }
+}
+
+function stopMusic() {
+  if (audioElement.value) {
+    audioElement.value.pause()
+    audioElement.value.currentTime = 0
+  }
+}
+
+function handleEnterKey(e) {
+  if (e.key === "Enter") {
+    if (!isRunning.value && !isGameOver.value) {
+      // Ekran startowy - uruchom grę
+      handleStart()
+    } else if (isGameOver.value) {
+      // Ekran game over - wróć do startu
+      handlePlayAgain()
+    }
+  }
+}
+
 onMounted(() => {
   window.addEventListener("keydown", handleKey)
+  window.addEventListener("keydown", handleEnterKey)
   checkOrientation()
   window.addEventListener("orientationchange", checkOrientation)
   window.addEventListener("resize", checkOrientation)
+  
+  // Inicjalizacja audio
+  audioElement.value = new Audio('/tetris-theme.mp3')
+  audioElement.value.loop = true
+  audioElement.value.volume = 0.5
+  
+  // Uruchom muzykę od razu na ekranie startowym
+  playMusic()
 })
 
 onBeforeUnmount(() => {
   stopGame()
+  stopMusic()
   window.removeEventListener("keydown", handleKey)
+  window.removeEventListener("keydown", handleEnterKey)
   window.removeEventListener("orientationchange", checkOrientation)
   window.removeEventListener("resize", checkOrientation)
 })
@@ -61,10 +127,16 @@ function checkOrientation() {
 </script>
 
 <template>
-  <div class="tetris-wrapper">
+  <div class="tetris-wrapper" :class="{ 'start-screen': !isRunning }">
+    <!-- Przycisk muzyki -->
+    <button class="music-toggle" @click="toggleMusic" aria-label="Toggle music">
+      <component :is="isMusicOn ? VolumeOnIcon : VolumeOffIcon" />
+    </button>
+
     <div class="header">
-      <h1>Tetris</h1>
+      <h1>
       <div v-if="isRunning && !isGameOver" class="score">Score: {{ score }}</div>
+      </h1>
     </div>
 
     <div class="game-area">
@@ -113,28 +185,19 @@ function checkOrientation() {
     <div v-if="isGameOver" class="gameover">
       <h1>GAME OVER!</h1>
       <h2>Your score: {{ score }} pts</h2>
+      <button class="play-again-btn" @click="handlePlayAgain">Play Again</button>
     </div>
 
     <!-- Start / Restart -->
     <div class="footer">
       <button v-if="!isRunning" class="start-btn" @click="handleStart">
-        Start
+        Press to start
       </button>
-
-      <!-- <div v-else class="game-controls">
-        <button class="restart-btn" @click="handleRestart">
-          <RestartIcon />
-        </button>
-
-        <button class="pause-btn" @click="handlePause">
-          <component :is="isPaused ? PlayIcon : PauseIcon" />
-        </button>
-      </div> -->
     </div>
 
     <!-- Overlay: wymuszamy pozycję poziomą na mobile -->
     <div v-if="showRotateOverlay" class="rotate-overlay">
-      <p>Obróć urządzenie poziomo 📱↔️</p>
+      <p>Turn your device horizontally 📱↔️</p>
     </div>
   </div>
 </template>
