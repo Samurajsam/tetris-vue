@@ -17,17 +17,23 @@ const isPaused = ref(false)
 const showRotateOverlay = ref(false)
 const isMusicOn = ref(true)
 const audioElement = ref(null)
+const hasUserInteracted = ref(false)
+let holdInterval = null
 
 function handleStart() {
   isRunning.value = true
   startGame()
+  // Pierwsza interakcja użytkownika - uruchom muzykę
+  if (!hasUserInteracted.value) {
+    hasUserInteracted.value = true
+    playMusic()
+  }
 }
 
 function handleRestart() {
   stopGame()
-  stopMusic()
   startGame()
-  playMusic()
+  // Muzyka gra dalej, nie resetujemy jej
 }
 
 function handlePlayAgain() {
@@ -40,15 +46,18 @@ function handlePlayAgain() {
 function handlePause() {
   if (!isPaused.value) {
     pauseGame()
-    pauseMusic()
   } else {
     resumeGame()
-    playMusic()
   }
   isPaused.value = !isPaused.value
 }
 
 function toggleMusic() {
+  // Oznacz że użytkownik wchodził w interakcję
+  if (!hasUserInteracted.value) {
+    hasUserInteracted.value = true
+  }
+  
   isMusicOn.value = !isMusicOn.value
   if (isMusicOn.value) {
     playMusic()
@@ -100,13 +109,14 @@ onMounted(() => {
   audioElement.value.loop = true
   audioElement.value.volume = 0.5
   
-  // Uruchom muzykę od razu na ekranie startowym
-  playMusic()
+  // Nie uruchamiamy muzyki automatycznie - czekamy na interakcję użytkownika
+  // (wymóg przeglądarek mobilnych)
 })
 
 onBeforeUnmount(() => {
   stopGame()
   stopMusic()
+  stopHold()
   window.removeEventListener("keydown", handleKey)
   window.removeEventListener("keydown", handleEnterKey)
   window.removeEventListener("orientationchange", checkOrientation)
@@ -120,9 +130,45 @@ function handleMove(action) {
   if (action === "rotate") handleKey({ key: "ArrowUp" }) // A = obrót
 }
 
+function startHold(action) {
+  // Pierwsze wywołanie od razu
+  handleMove(action)
+  // Potem powtarzaj co 150ms podczas przytrzymania
+  holdInterval = setInterval(() => {
+    handleMove(action)
+  }, 150)
+}
+
+function stopHold() {
+  if (holdInterval) {
+    clearInterval(holdInterval)
+    holdInterval = null
+  }
+}
+
 function checkOrientation() {
   // jeżeli ekran jest „pionowy” – pokaż overlay, żeby obrócić
   showRotateOverlay.value = window.innerHeight > window.innerWidth
+  
+  // Automatyczne przejście w tryb pełnoekranowy na urządzeniach mobilnych
+  if (window.innerHeight < window.innerWidth && isMobileDevice()) {
+    enterFullscreen()
+  }
+}
+
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
+function enterFullscreen() {
+  const elem = document.documentElement
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen().catch(err => console.log('Fullscreen request failed:', err))
+  } else if (elem.webkitRequestFullscreen) { // Safari
+    elem.webkitRequestFullscreen()
+  } else if (elem.msRequestFullscreen) { // IE11
+    elem.msRequestFullscreen()
+  }
 }
 </script>
 
@@ -142,11 +188,25 @@ function checkOrientation() {
     <div class="game-area">
       <!-- LEWO: D-Pad -->
       <div v-if="isRunning && !isGameOver" class="dpad">
-        <button class="control-btn left" @click="handleMove('left')" aria-label="Move left">
+        <button 
+          class="control-btn left" 
+          @mousedown="startHold('left')" 
+          @mouseup="stopHold" 
+          @mouseleave="stopHold"
+          @touchstart.prevent="startHold('left')" 
+          @touchend.prevent="stopHold"
+          aria-label="Move left">
           <LeftArrow />
         </button>
 
-        <button class="control-btn right" @click="handleMove('right')" aria-label="Move right">
+        <button 
+          class="control-btn right" 
+          @mousedown="startHold('right')" 
+          @mouseup="stopHold" 
+          @mouseleave="stopHold"
+          @touchstart.prevent="startHold('right')" 
+          @touchend.prevent="stopHold"
+          aria-label="Move right">
           <RightArrow />
         </button>
       </div>
@@ -165,8 +225,24 @@ function checkOrientation() {
       <!-- <div v-if="isRunning && !isGameOver" class="action-panel"> -->
         <!-- A / B -->
         <div class="ab-buttons">
-          <button class="control-btn btn-b" @click="handleMove('down')">B</button>
-          <button class="control-btn btn-a" @click="handleMove('rotate')">A</button>
+          <button 
+            class="control-btn btn-b" 
+            @mousedown="startHold('down')" 
+            @mouseup="stopHold" 
+            @mouseleave="stopHold"
+            @touchstart.prevent="startHold('down')" 
+            @touchend.prevent="stopHold">
+            B
+          </button>
+          <button 
+            class="control-btn btn-a" 
+            @mousedown="startHold('rotate')" 
+            @mouseup="stopHold" 
+            @mouseleave="stopHold"
+            @touchstart.prevent="startHold('rotate')" 
+            @touchend.prevent="stopHold">
+            A
+          </button>
         </div>
 
         <!-- Restart / Pauza -->
