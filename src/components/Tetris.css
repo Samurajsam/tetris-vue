@@ -27,7 +27,7 @@ button {
 .music-toggle {
   position: absolute;
   top: 2vh;
-  right: 2vh;
+  left: 2vh;
   width: 60px;
   height: 60px;
   border-radius: 50%;
