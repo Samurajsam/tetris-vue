@@ -62,7 +62,8 @@ button {
 }
 
 .tetris-wrapper.start-screen {
-  background: url("../assets/tetris-start-bg.png") no-repeat center center;
+  background-repeat: no-repeat;
+  background-position: center center;
   background-size: cover;
   display: block;
 }
