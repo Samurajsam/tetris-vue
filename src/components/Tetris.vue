@@ -9,6 +9,7 @@ import PauseIcon from "../icons/PauseIcon.vue"
 import PlayIcon from "../icons/PlayIcon.vue"
 import VolumeOnIcon from "../icons/VolumeOnIcon.vue"
 import VolumeOffIcon from "../icons/VolumeOffIcon.vue"
+import bgImage from "../assets/tetris-start-bg.png"
 
 const { drawBoard, handleKey, startGame, stopGame, pauseGame, resumeGame, score, isGameOver } = useTetris()
 
@@ -105,7 +106,7 @@ onMounted(() => {
   window.addEventListener("resize", checkOrientation)
   
   // Inicjalizacja audio
-  audioElement.value = new Audio('/tetris-theme.mp3')
+  audioElement.value = new Audio(import.meta.env.BASE_URL + 'tetris-theme.mp3')
   audioElement.value.loop = true
   audioElement.value.volume = 0.5
   
@@ -173,7 +174,7 @@ function enterFullscreen() {
 </script>
 
 <template>
-  <div class="tetris-wrapper" :class="{ 'start-screen': !isRunning }">
+  <div class="tetris-wrapper" :class="{ 'start-screen': !isRunning }" :style="!isRunning ? { backgroundImage: `url(${bgImage})` } : {}">
     <!-- Przycisk muzyki -->
     <button class="music-toggle" @click="toggleMusic" aria-label="Toggle music">
       <component :is="isMusicOn ? VolumeOnIcon : VolumeOffIcon" />
