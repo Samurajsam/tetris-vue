@@ -30,5 +30,7 @@ public/README_MUSIC.txt
 # Pictures
 src/assets/tetris-start-bg.png
 FULLSCREEN_MOBILE.md
+public/icons
+
 # Local Netlify folder
 .netlify
